@@ -3,6 +3,8 @@ package jp.ac.st.asojuku.yolp001;
 import jp.co.yahoo.android.maps.GeoPoint;
 import jp.co.yahoo.android.maps.MapController;
 import jp.co.yahoo.android.maps.MapView;
+import jp.co.yahoo.android.maps.weather.WeatherOverlay;
+import jp.co.yahoo.android.maps.weather.WeatherOverlay.WeatherOverlayListener;
 import android.app.Activity;
 import android.content.Context;
 import android.location.Criteria;
@@ -12,7 +14,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.view.Menu;
 
-public class MainActivity extends Activity implements LocationListener{
+public class MainActivity extends Activity implements LocationListener ,WeatherOverlayListener{
 	
 	
 	// LoacationManagerを準備
@@ -23,6 +25,9 @@ public class MainActivity extends Activity implements LocationListener{
 	int lastLatitude = 0;
 	// 直前の緯度（1000000倍精度）
 	int lastLongitude = 0;
+	
+	// 雨雲レーダー表示用のオーバーレイクラス変数を準備
+	WeatherOverlay mWeatherOverlay = null;
 	
 	@Override
 	public void onLocationChanged(Location location) {
@@ -81,7 +86,7 @@ public class MainActivity extends Activity implements LocationListener{
 		super.onResume();
 		
 		// 地図表示用のYahooライブラリview部品を用意
-		mMapView = new MapView(this,"dj0zaiZpPTdhZ1hERlB4QU01ViZzPWNvbnN1bWVyc2VjcmV0Jng9Mjgdj0zaiZpPTdhZ1hERlB4QU01ViZzPWNvbnN1bWVyc2VjcmV0Jng9Mjg-");
+		mMapView = new MapView(this,"dj0zaiZpPTdhZ1hERlB4QU01ViZzPWNvbnN1bWVyc2VjcmV0Jng9Mjg-");
 		// ズームボタンを画面にON
 		mMapView.setBuiltInZoomControls(true);
 		// 地図縮尺バーを画面にON
@@ -120,6 +125,19 @@ public class MainActivity extends Activity implements LocationListener{
 		
 		// 位置情報のイベントリスナーであるLocationListenerを登録
 		mLocationManager.requestLocationUpdates(provider,0,0,this);
+		
+		// ここから、雨雲レーダー処理
+		// 雨雲レーダー用のオーバーレイ（WeatherOverlay)設定処理
+		mWeatherOverlay = new WeatherOverlay(this);
+		
+		// WeatherOverlayListenerを設定
+		mWeatherOverlay.setWeatherOverlayListener(this);
+		
+		// 雨雲レーダーの更新間隔を、分単位で指定
+		mWeatherOverlay.startAutoUpdate(1);
+		
+		// MapViewにWeatherOverlayを追加
+		mMapView.getOverlays().add(mWeatherOverlay);
 	}
 
 	@Override
@@ -127,6 +145,18 @@ public class MainActivity extends Activity implements LocationListener{
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
+	}
+
+	@Override
+	public void errorUpdateWeather(WeatherOverlay arg0, int arg1) {
+		// TODO 自動生成されたメソッド・スタブ
+		
+	}
+
+	@Override
+	public void finishUpdateWeather(WeatherOverlay arg0) {
+		// TODO 自動生成されたメソッド・スタブ
+		
 	}
 
 
